@@ -73,6 +73,27 @@ exports.handler = function (request) {
               }
             });
           }
+          else if( tweet.in_reply_to_status_id != null ){ // user replies to a tweet with image and tags @unjpeg
+            twitterClient.get('statuses/show', {id: tweet.in_reply_to_status_id}, function(newError, newTweets, newResponse) {
+              if (error) {
+                console.error(error);
+              }
+              else{
+                newTweets.forEach(function(newTweet){
+                  if( newTweet.entities.media ){
+                    tweet.entities.media.forEach(function(entity){
+                      if( entity.type == 'photo' && entity.media_url_https.endsWith('jpg') ){
+                        fixImageAndTweet(entity.media_url_https, tweet.id_str, tweet.user.screen_name);
+                      }
+                    });
+                  }
+                  else{
+                    // TODO: user replied to a message that didn't contain an image
+                  }
+                });
+              }
+            });
+          }
           else{ //TODO: Check tweets that are Replies (not quotes), for images.
             //A tweet without an image.
           }
