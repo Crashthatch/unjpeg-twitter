@@ -20,7 +20,7 @@ function fixImageAndTweet(imageUrl, replyToTweetId, replyToUsername){
   algorithmiaClient
     .pipe(imageUrl)
     .then(function(response) {
-      console.log('algorithmia replied!');
+      console.log('algorithmia replied for '+imageUrl);
       var data = response.get(); //buffer object.
       //Upload the cleaned image to S3.
       //TODO: Set lifecycle on S3 images to delete images after a week / month.
@@ -39,13 +39,13 @@ function fixImageAndTweet(imageUrl, replyToTweetId, replyToUsername){
               console.error(error);
             }
             else{
-              console.log(tweet);
+              console.log("Successfully tweeted reply back to "+replyToUsername+" about image "+imageUrl+" (Cleaned url: https://s3.amazonaws.com/unjpeg/"+filename+" )");
             }
           })
         }
       });
     });
-  console.log('sent to algorithmia');
+  console.log('Sent to algorithmia:'+imageUrl);
 }
 
 exports.handler = function (request) {
@@ -57,7 +57,7 @@ exports.handler = function (request) {
     }
     else{
       tweets.forEach(function(tweet){
-        if( true ) //TODO: Test if we already saw this tweet and replied.
+        if( new Date(Date.parse(tweet.created_at)) > new Date(new Date().getTime() - 60*1000) ) //TODO: Test if we already saw this tweet and replied - store seen IDs in DynamoDb.
         {
           if( tweet.quoted_status && tweet.quoted_status.entities.media ){ //Eg. user quoted the tweet that had the jpeggy image. (eg. Retweet, then add a message tagging @unjpeg). Majority use case.
             tweet.quoted_status.entities.media.forEach(function(entity){
@@ -72,6 +72,9 @@ exports.handler = function (request) {
                 fixImageAndTweet(entity.media_url_https, tweet.id_str, tweet.user.screen_name);
               }
             });
+          }
+          else{ //TODO: Check tweets that are Replies (not quotes), for images.
+            //A tweet without an image.
           }
         }
       })
