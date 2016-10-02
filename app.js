@@ -87,9 +87,6 @@ exports.handler = function (request) {
                       }
                     });
                   }
-                  else{
-                    // TODO: user replied to a message that didn't contain an image
-                  }
                 });
               }
             });
