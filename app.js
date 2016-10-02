@@ -75,8 +75,8 @@ exports.handler = function (request) {
           }
           else if( tweet.in_reply_to_status_id != null ){ // user replies to a tweet with image and tags @unjpeg
             twitterClient.get('statuses/show', {id: tweet.in_reply_to_status_id}, function(newError, newTweets, newResponse) {
-              if (error) {
-                console.error(error);
+              if (newError) {
+                console.error(newError);
               }
               else{
                 newTweets.forEach(function(newTweet){
