@@ -23,6 +23,7 @@ function fixImageAndTweet(imageUrl, replyToTweetId, replyToUsername){
       console.log('algorithmia replied!');
       var data = response.get(); //buffer object.
       //Upload the cleaned image to S3.
+      //TODO: Set lifecycle on S3 images to delete images after a week / month.
       var filename = Math.random()+".png";
       var params = {Key: filename, Body: data, ContentType: "image/png", ACL: "public-read"};
       s3bucket.upload(params, function(err, data2) {
@@ -58,8 +59,15 @@ exports.handler = function (request) {
       tweets.forEach(function(tweet){
         if( true ) //TODO: Test if we already saw this tweet and replied.
         {
-          if( tweet.quoted_status && tweet.quoted_status.entities.media ){ //Eg. user referenced the tweet but sent it to @unjpeg (majority use case)
+          if( tweet.quoted_status && tweet.quoted_status.entities.media ){ //Eg. user quoted the tweet that had the jpeggy image. (eg. Retweet, then add a message tagging @unjpeg). Majority use case.
             tweet.quoted_status.entities.media.forEach(function(entity){
+              if( entity.type == 'photo' && entity.media_url_https.endsWith('jpg') ){
+                fixImageAndTweet(entity.media_url_https, tweet.id_str, tweet.user.screen_name);
+              }
+            });
+          }
+          else if( tweet.entities.media ){ //User attached an image to his tweet directly.
+            tweet.entities.media.forEach(function(entity){
               if( entity.type == 'photo' && entity.media_url_https.endsWith('jpg') ){
                 fixImageAndTweet(entity.media_url_https, tweet.id_str, tweet.user.screen_name);
               }
