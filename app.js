@@ -81,8 +81,9 @@ exports.handler = function (request) {
               else{
                 newTweets.forEach(function(newTweet){
                   if( newTweet.entities.media ){
-                    tweet.entities.media.forEach(function(entity){
+                    newTweet.entities.media.forEach(function(entity){
                       if( entity.type == 'photo' && entity.media_url_https.endsWith('jpg') ){
+                        // want to send the entity from newTweet, but reply to tweet
                         fixImageAndTweet(entity.media_url_https, tweet.id_str, tweet.user.screen_name);
                       }
                     });
