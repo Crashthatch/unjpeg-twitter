@@ -73,8 +73,26 @@ exports.handler = function (request) {
               }
             });
           }
-          else{ //TODO: Check tweets that are Replies (not quotes), for images.
-            //A tweet without an image.
+          else if( tweet.in_reply_to_status_id_str != null ){ // user replied to a tweet with image and tags @unjpeg
+            //Must do a second request to get the tweet that was replied to since it's not in the initial /statuses/mentions_timeline
+            twitterClient.get('statuses/show', {id: tweet.in_reply_to_status_id_str}, function(newError, inReplyToTweet, newResponse) {
+              if (newError) {
+                console.error(newError);
+              }
+              else{
+                if( inReplyToTweet.entities.media ){
+                  inReplyToTweet.entities.media.forEach(function(entity){
+                    if( entity.type == 'photo' && entity.media_url_https.endsWith('jpg') ){
+                      // want to send the entity from inReplyToTweet, but reply to tweet
+                      fixImageAndTweet(entity.media_url_https, tweet.id_str, tweet.user.screen_name);
+                    }
+                  });
+                }
+              }
+            });
+          }
+          else{
+            //A tweet we don't know how to handle (eg. no image, not a reply or quote).
           }
         }
       })
