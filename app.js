@@ -50,7 +50,7 @@ function fixImageAndTweet(imageUrl, replyToTweetId, replyToUsername){
 
 exports.handler = function (request) {
   //Check mentions from twitter.
-  var params = {screen_name: 'nodejs'};
+  var params = {screen_name: 'nodejs', tweet_mode: 'extended'};
   twitterClient.get('statuses/mentions_timeline', params, function(error, tweets, response) {
     if (error) {
       console.error(error);
@@ -75,7 +75,7 @@ exports.handler = function (request) {
           }
           else if( tweet.in_reply_to_status_id_str != null ){ // user replied to a tweet with image and tags @unjpeg
             //Must do a second request to get the tweet that was replied to since it's not in the initial /statuses/mentions_timeline
-            twitterClient.get('statuses/show', {id: tweet.in_reply_to_status_id_str}, function(newError, inReplyToTweet, newResponse) {
+            twitterClient.get('statuses/show', {id: tweet.in_reply_to_status_id_str, tweet_mode: 'extended'}, function(newError, inReplyToTweet, newResponse) {
               if (newError) {
                 console.error(newError);
               }
