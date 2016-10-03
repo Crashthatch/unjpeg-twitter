@@ -13,14 +13,13 @@ var twitterClient = new Twitter({
   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 var s3bucket = new AWS.S3({params: {Bucket: 'unjpeg'}});
-var algorithmiaClient = algorithmia(process.env.ALGORITHMIA_API_KEY).algo("algo://chinery/unjpeg/16b50586fa8c67bc09b5a4d6ae43494cb75a920d");
 
 function fixImageAndTweet(imageUrl, replyToTweetId, replyToUsername){
   //Send the image to algorithmia for the artefacts to be removed.
-  algorithmiaClient
+  algorithmia(process.env.ALGORITHMIA_API_KEY).algo("algo://chinery/unjpeg/16b50586fa8c67bc09b5a4d6ae43494cb75a920d")
     .pipe(imageUrl)
     .then(function(response) {
-      console.log('algorithmia replied for '+imageUrl);
+      console.log('algorithmia replied for '+imageUrl+' from '+replyToUsername);
       var data = response.get(); //buffer object.
       //Upload the cleaned image to S3.
       //TODO: Set lifecycle on S3 images to delete images after a week / month.
@@ -45,7 +44,7 @@ function fixImageAndTweet(imageUrl, replyToTweetId, replyToUsername){
         }
       });
     });
-  console.log('Sent to algorithmia:'+imageUrl);
+  console.log('Sent to algorithmia:'+imageUrl+' from '+replyToUsername);
 }
 
 exports.handler = function (request) {
@@ -93,6 +92,7 @@ exports.handler = function (request) {
           }
           else{
             //A tweet we don't know how to handle (eg. no image, not a reply or quote).
+            console.log('got a tweet, but could not handle it. '+tweet);
           }
         }
       })
